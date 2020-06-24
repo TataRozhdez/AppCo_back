@@ -4,21 +4,21 @@ const users = require("../init_data/users.json")
 const users_statistics = require("../init_data/users_statistic.json")
 
 const userMapping = `(${Object.values(users[0]).map(field => '?').join(', ')})`
-// console.log(`user mapping: ${userMapping}`)
 const q = `INSERT INTO users (id,first_name,last_name,email,gender,ip_address) VALUES ${userMapping};`
 
 const statisticMapping = `(${Object.values(users_statistics[0]).map(field => '?').join(', ')})`
-console.log(`user mapping: ${statisticMapping}`)
-const q = `INSERT INTO users (user_id,date,page_views,clicks) VALUES ${statisticMapping};`
+const p = `INSERT INTO users_statistics (user_id,date,page_views,clicks) VALUES ${statisticMapping };`
 
 db.serialize(() => {
   db.run(`CREATE TABLE IF NOT EXISTS users ( 
-    user_id         INTEGER PRIMARY KEY,
-    date  TEXT    NOT NULL,
-    page_views   NUMBER    NOT NULL,
-    clicks      NUMBER    NOT NULL
+    id         INTEGER PRIMARY KEY,
+    first_name  TEXT    NOT NULL,
+    last_name   TEXT    NOT NULL,
+    email      TEXT    NOT NULL,
+    gender     TEXT    NOT NULL,
+    ip_address TEXT    NOT NULL
   )`, err => console.log(`create table error: ${err}`));
-  console.log(2);
+
   db.parallelize(() => {
     users.forEach((u) => {
       const user = Object.values(u);
@@ -27,55 +27,31 @@ db.serialize(() => {
         if (err) {
           return console.log(err);
         }
-        console.log(`Successfully updated`);
+        console.log(`Successfully updated users`);
       });
     });
   });
 });
 
-// db.serialize(function () {
-//   let sql = `SELECT * FROM users`
-//   let us = object.values(users).map((user) => '(?)').join(',');
-//   let sqlStat = `SELECT * FROM users_statistic`
-//   let statics = object.values(users_statistics).map((stat) => '(?)').join(',');
+db.serialize(() => {
+  db.run(`CREATE TABLE IF NOT EXISTS users_statistics ( 
+    user_id    INTEGER,
+    date       TEXT NOT NULL,
+    page_views TEXT NOT NULL,
+    clicks     TEXT NOT NULL
+  )`, err => console.log(`create table error: ${err}`));
 
-//   db.get(sql, (err, table) => {
-//     if (err) {
-//       db.run(`CREATE TABLE IF NOT EXISTS users ( 
-//         id INTEGER PRIMARY KEY,
-//         firstName  TEXT NOT NULL,
-//         lastName   TEXT NOT NULL,
-//         email      TEXT NOT NULL,
-//         gender     TEXT NOT NULL,
-//         ip_address TEXT NOT NULL,
-//       )`)
-//         .run(`INSERT INTO users(id, first_Name, last_Name, email, gender, ip_address)
-//               VALUES` + us)
-//     }
-//     return table
-//       ? console.log(table)
-//       : console.log('Table not found');
-  
-//   });
-//   db.get(sql, (err, table) => {
-//     if (err) {
-//       db.run(`CREATE TABLE IF NOT EXISTS users ( 
-//         id INTEGER PRIMARY KEY,
-//         firstName  TEXT NOT NULL,
-//         lastName   TEXT NOT NULL,
-//         email      TEXT NOT NULL,
-//         gender     TEXT NOT NULL,
-//         ip_address TEXT NOT NULL,
-//       )`)
-//         .run(`INSERT INTO users(id, first_Name, last_Name, email, gender, ip_address)
-//               VALUES` + us)
-//     }
-//     return table
-//       ? console.log(table)
-//       : console.log('Table not found');
-  
-//   });
-// })
-
+  db.parallelize(() => {
+    users_statistics.forEach((i) => {
+      const us = Object.values(i);
+      db.run(p, us, (err) => {
+        if (err) {
+          return console.log(err);
+        }
+        console.log(`Successfully updated users_statistic`);
+      });
+    });
+  });
+});
 
 db.close()
